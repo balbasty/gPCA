@@ -1,0 +1,9 @@
+function elbo_latent(obj)
+
+    N = numel(obj.data);
+    obj.lbZ =   0.5*N*logAz ...
+              - 0.5*trace(obj.Az*obj.ZZ) ...
+              - 0.5*N*gpca.utils.logdetPD(obj.A) ...
+              + 0.5*trace(obj.A*obj.ZZ);
+
+end
