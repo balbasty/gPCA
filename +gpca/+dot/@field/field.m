@@ -27,10 +27,10 @@ classdef field % < gpca.dot.base
         
         function x = solve(obj,x)
             spm_field('boundary', obj.Boundary);
-            converter = str2fun(class(x));
+            converter = str2func(class(x));
             x = spm_field('vel2mom', full(single(x)), ...
                 double([obj.VoxelSize obj.Absolute obj.Membrane obj.Bending]));
-            x = converter(x);
+%             x = converter(x);
         end
         
         function x = dot(obj,x,y)
@@ -38,10 +38,10 @@ classdef field % < gpca.dot.base
                 error('x and y must have the same number of elements')
             end
             spm_field('boundary', obj.Boundary);
-            converter = str2fun(class(x));
+            converter = str2func(class(x));
             x = spm_field('vel2mom', full(single(x)), ...
                 double([obj.VoxelSize obj.Absolute obj.Membrane obj.Bending]));
-            x = converter(x);
+%             x = converter(x);
             x = x(:)'*y(:);
         end
         

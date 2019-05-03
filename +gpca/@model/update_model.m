@@ -1,4 +1,4 @@
-function update_model(obj)
+function obj = update_model(obj)
 
     % ----
     % mean
@@ -13,7 +13,7 @@ function update_model(obj)
     % latent precision
     % ----------------
     obj.update_latent_precision();
-    obj.elbo_latent()
+    obj.elbo_latent();
     obj.elbo_latent_precision();
     
     obj.plot();
@@ -23,6 +23,15 @@ function update_model(obj)
     % --------
     obj.update_subspace();
     obj.elbo_obs();
+    obj.elbo_subspace();
+    
+    obj.plot();
+    
+    % -------------
+    % orthogonalise
+    % -------------
+    obj.orthogonalise();
+    obj.elbo_latent();
     obj.elbo_subspace();
     
     obj.plot();

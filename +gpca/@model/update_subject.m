@@ -1,25 +1,32 @@
 function subj_data = update_subject(obj,subj_data)
 
-    x  = read(subj_data.x);
-    mu = read(obj.mu);
-
     % -----------------------------------
     % Update latent [posterior precision]
     % -----------------------------------
-    subj_data.Az = obj.A;
+    % Common to all subjects so we just copy the pre-computed value
+    % > Az = A + lam * (U'*L*U + Au)
+    subj_data.Az = obj.Az;
     
     % ------------------------------
     % Update latent [posterior mean]
     % ------------------------------
-    M = size(Az,1);
-    Lx = dot.solve(x-mu);
+    % > E[z]    = lam * inv(Az) * U' * L * (x - mu)
+    % > E[z*z'] = E[z]*E[z'] + inv(Az)
+    M  = size(subj_data.Az,1);
+    x  = gpca.format.read(subj_data.x);
+    mu = gpca.format.read(obj.mu);
+    % Compute L * (x - mu)
+    Lx = obj.dot.solve(x - mu);
+    % Compute U' * L * (x - mu)
     subj_data.z = zeros(obj.M,1);
     for m=1:M
-        Um   = read(obj.U,m);
-        subj_data.z(m) = Um(:)'*Lx(:);
+        Um   = gpca.format.read(obj.U,m);
+        subj_data.z(m) = Um(:)' * Lx(:);
     end
     clear Lx
-    subj_data.z  = pgca.utils.invPD(subj_data.Az)*subj_data.z;
-    subj_data.zz = subj_data.z(:)*subj_data.z(:)' + obj.iA;
+    % Compute lam * inv(Az) * U' * L * (x - mu)
+    subj_data.z  = obj.lam * obj.iAz * subj_data.z;
+    % Compute E[z]*E[z'] + inv(Az)
+    subj_data.zz = subj_data.z(:) * subj_data.z(:)';
     
 end

@@ -13,7 +13,7 @@ function A = invPD(A)
         warning('Matrix has negative eigenvalues')
         D(D <= 0) = eps; % Threshold negative eigenvalues
     end
-    D     = loaddiag(D);
+    D     = gpca.utils.loaddiag(D);
     A     = real(V * (D \ V'));
 
 end

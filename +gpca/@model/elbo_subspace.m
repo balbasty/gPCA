@@ -1,9 +1,10 @@
-function elbo_subspace(obj)
+function obj = elbo_subspace(obj)
 
-    D = prod(lat);
+    D = prod(obj.lat);
 
-    obj.lbU = - 0.5 * trace(obj.ULU) ...
-              - 0.5 * D * utils.gpca.logdetPD(obj.Au) ...
-              + 0.5 * trace(obj.Au*obj.ULU);
-
+    obj.lbU =   trace(obj.ULU + D * obj.iAu) ...
+              + D * gpca.utils.logdetPD(obj.Au) ...
+              - D * obj.M;
+    obj.lbU = - 0.5 * obj.lbU;
+          
 end

@@ -1,17 +1,17 @@
-classdef model
+classdef model < handle
     
     properties
     % Model hyper-parameters
         dot         = gpca.dot.euclidean(); % Dot product (< gpca.dot.base)
         M           = Inf; % Number of principal components
         lat         = [];  % Lattice dimensions
-        Az0         = 1;   % Prior expected latent precision
-        nz0         = 0;   % Prior df latent precision
+        A0          = 1;   % Prior expected latent precision
+        nA0         = 0;   % Prior df latent precision
         lam0        = 1;   % Prior expected residual precision
         nl0         = 0;   % Prior df residual precision
         mu0         = 0;   % Prior expected mean
         nm0         = 0;   % Prior df mean
-        U0          = 0;   % Prior subspace
+        U0          = 0;   % Initial subspace
     end
     
     properties
@@ -24,103 +24,139 @@ classdef model
         format      = gpca.format.numeric();
     end
     
-    properties
+    properties % (Hidden, Access = private)
     % Model learnt posteriors
-        U    = []   % Principal subspace (E[] 1st moment)
-        ULU  = []   % Principal subspace (E[] 2nd moment)
-        Au   = []   % Principal subspace (precision)
-        Az   = []   % Latent precision (E[] 1st moment)
-        nz   = []   % Latent precision (df)
-        lam  = []   % Residual precision (E[] 1st moment)
-        nl   = []   % Residual precision (df)
-        mu   = []   % mean (E[] 1st moment)
-        trLM = []   % mean (E[] 2nd moment) Tr(L*E[mu*mu'])
-        nm   = []   % mean (df)
-        lbU  = NaN; % EKL/ELL of principal subspace
-        lbAz = NaN; % EKL/ELL of latent precision
-        lbl  = NaN; % EKL/ELL of residual precision
-        lbm  = NaN; % EKL/ELL of mean
+        U      = []   % Principal subspace (E[] 1st moment)
+        ULU    = []   % Principal subspace (E[] 2nd moment)
+        Au     = []   % Principal subspace (precision)
+        iAu    = []   % Principal subspace (covariance)
+        A      = []   % Latent precision (E[] 1st moment)
+        logA   = NaN; % Latent precision (E[] log det)
+        nA     = NaN  % Latent precision (df)
+        lam    = NaN  % Residual precision (E[] 1st moment)
+        loglam = NaN; % Residual precision (E[] log)
+        nl     = NaN  % Residual precision (df)
+        mu     = []   % mean (E[] 1st moment)
+        nm     = NaN  % mean (df)
+        lbU    = NaN; % EKL/ELL of principal subspace
+        lbA    = NaN; % EKL/ELL of latent precision
+        lbl    = NaN; % EKL/ELL of residual precision
+        lbm    = NaN; % EKL/ELL of mean
     end
     
-    properties (Hidden, Access = private)
+    properties % (Hidden, Access = private)
     % Temporary variables (for fit/apply)
-        data = []   % Sliceable object with subject-specific data
-        Z    = []   % Latent cordinates (1st moment) 
-        ZZ   = []   % Latent cordinates (2nd moment)
-        A    = []   % Posterior precision (shared between subjects)
-        trLS = NaN; % Tr(L*X*X')
-        lbX  = NaN; % ELL of data term
-        lbZ  = NaN; % EKL of latent coordinates
+        data  = []   % Sliceable object with subject-specific data
+        Z     = []   % Latent cordinates (1st moment) 
+        ZZ    = []   % Latent cordinates (2nd moment)
+        Az    = []   % Posterior precision (shared between subjects)
+        iAz   = []   % Inverse of Az
+        lbX   = NaN  % ELL of data term
+        lbZ   = NaN  % EKL of latent coordinates
+        elbo  = []   % Evidence Lower BOund
+        elbo_parts = struct;
+        gain  = NaN  % ELBO gain between two iterations
+        track = struct('X',  [], 'Z',   [], 'U',  [], ...
+                       'A',  [], 'lam', [], 'mu', [], 'elbo', [])
     end
     
     methods (Access = public)
         function obj = model()
         end
         
-        set_parameters(varargin);
+        obj = set_parameters(varargin)
+        mod = get_model(obj)
+        obj = set_model(obj, mod)
         
         function output = train(obj,dataset) % Fit the full model    (subj+pop)
-            
             obj.init_data(dataset);
-            
-            try
-                obj.train_internal();
-            catch ME
-                obj.cleanup_data();
-                ME.throw();
+            if ~isfinite(obj.M) || obj.M > numel(obj.data)
+                obj.M = numel(obj.data) - 1;
             end
-            
+            obj.lat = gpca.format.size(obj.data(1).x);
+%             try
+                obj.train_internal();
+%             catch ME
+%                 obj.cleanup_data();
+%                 ME.throw();
+%             end
             output = obj.create_output();
             obj.cleanup_data();
-            
         end
         
         function output = apply(obj,dataset) % Fit the trained model (subj)
-            
             obj.init_data(dataset);
-            
+            datalat = gpca.format.size(obj.data(1).x);
+            if ~issame(datalat, obj.lat)
+                error('Model and Data lattices are not compatible')
+            end
             try
                 obj.apply_internal();
             catch ME
                 obj.cleanup_data();
                 ME.throw();
             end
-            
             output = obj.create_output();
             obj.cleanup_data();
-            
         end
         
     end
     
     methods (Access = private)
         
-        train_internal(obj)                 % done
-        apply_internal(obj)                 % done
+        obj  = train_internal(obj)                 % done
+        obj  = apply_internal(obj)                 % done
         
-        init_data(obj)
-        cleanup_data(obj)
-        create_output(obj)
+        obj  = init_data(obj,dataset)              % done
         
-        plot(obj)
+        obj  = plot(obj)
         
-        init_model(obj)                     % done
-        init_latent(obj)                    % done
+        obj  = init_model(obj)                     % done
+        obj  = init_latent(obj)                    % done
+        obj  = init_elbo_parts(obj)                % done
         
-        update_all_subjects(obj)            % done
-        data = update_subject(obj,data)     % done
-        update_population(obj)              % done
-        update_subspace(obj)                % done
-        update_mean(obj)                    % done
-        update_latent_precision(obj)        % done
-        update_residual_precision(obj)      % done
+        obj  = update_all_subjects(obj)            % done
+        data = update_subject(obj,data)            % done
+        obj  = update_population(obj)              % done
+        obj  = update_subspace(obj)                % done
+        obj  = update_mean(obj)                    % done
+        obj  = update_latent_precision(obj)        % done
+        obj  = update_residual_precision(obj)      % done
         
-        elbo_subspace(obj)                  % done
-        elbo_mean(obj)                      % done
-        elbo_latent_precision(obj)          % done
-        elbo_residual_precision(obj)        % done
-        elbo_latent(obj)                    % done
-        elbo_obs(obj)                       % done
+        obj  = elbo_subspace(obj)                  % done
+        obj  = elbo_mean(obj)                      % done
+        obj  = elbo_latent_precision(obj)          % done
+        obj  = elbo_residual_precision(obj)        % done
+        obj  = elbo_latent(obj)                    % done
+        obj  = elbo_obs(obj)                       % done
+        
+                
+        function obj = cleanup_data(obj)
+            obj.data = [];
+            obj.Z    = [];
+            obj.ZZ   = [];
+            obj.Az   = [];
+            obj.iAz  = [];
+            obj.lbX  = NaN;
+            obj.lbZ  = NaN;
+            obj.elbo = [];
+            obj.elbo_parts = struct;
+            obj.gain = NaN;
+            obj.track = struct('X', [], 'Z',   [], 'U',  [], ...
+                               'A', [], 'lam', [], 'mu', [], 'elbo', []);
+        end
+        
+        function out = create_output(obj)
+            out           = struct;
+            out.data      = obj.data;
+            out.latent.Z  = obj.Z;
+            out.latent.ZZ = obj.ZZ;
+            out.latent.A  = obj.Az;
+            out.elbo.X    = obj.lbX;
+            out.elbo.Z    = obj.lbZ;
+            out.elbo.all  = obj.elbo;
+        end
+        
     end
     
 end

@@ -1,41 +1,61 @@
-function update_residual_precision(obj)
+function obj = update_residual_precision(obj)
+
 
     if isfinite(obj.nl0)
-        obj.nl   = numel(obj.data) + obj.nl0;
-        lam      = obj.trLS + trace(obj.ZZ*obj.ULU);
-        mu       = read(obj.mu);
-        data     = obj.data;
-        obj.data = [];
-        dot      = obj.dot;
-        M        = obj.M;
-        U        = obj.U;
+    % ---------------------------------------------------------------------
+    % Maximum likelihood (nl0 == 0) or Variational posterior (nl0 > 0)
+    % ---------------------------------------------------------------------
+    
+        % ----------------
+        % Useful variables
+        % ----------------
+        N        = numel(obj.data);
         D        = prod(obj.lat);
-        parfor(n=1:numel(data), obj.parallel)
-            data1 = data(n);
-            x     = read(data1.x);
-            z     = read(data1.z);
-            x     = dot.solve(x-mu);
-            for m=1:M
-                Um  = read(U, m);
-                lam = lam -2 * z(m) * x(:)' * Um(:);
-            end
+    
+        % ------------------
+        % degrees of freedom
+        % ------------------
+        % > n = n0 + N
+        obj.nl   = obj.nl0 + N;
+        
+        % ------------------
+        % maximum-likelihood
+        % ------------------
+        % > inv(ML[lam]) = (1/ND) * ( N*var[Tr(L*mu*mu')]
+        %                             + Tr(L*(X-mu)*(X-mu)')
+        %                             + Tr(E[U'*L*U]*E[Z*Z'])
+        %                             - 2*Tr(L*U*Z*(X-mu)) )
+        lam      =   N * obj.elbo_parts.varLM...
+                   +     obj.elbo_parts.trLS ...
+                   +     obj.elbo_parts.trULUZZ ...
+                   - 2 * obj.elbo_parts.trLUZX;
+        lam      = lam/D;
+        
+        % ----------------
+        % Variational mean
+        % ----------------
+        % > inv(E[lam]) = (n0 * inv(lam0) + N * inv(ML[lam])) / (n0 + N)
+        if obj.nl0 > 0
+            lam = lam + obj.nl0 * 1/obj.lam0;
         end
-        obj.data = data;
-        lam      = (lam + obj.nl0 * obj.lam0)/obj.nl;
-        obj.lam  = lam;
+        lam      = lam/obj.nl;
+        obj.lam  = 1/lam;
         
-        
-        if obj.nl0 == 0
-            obj.loglam = gpca.utils.log(obj.lam);
-        else
-            obj.loglam = gpca.utils.log(obj.lam) ...
+        % ----------------
+        % Expected log det
+        % ----------------
+        obj.loglam = log(obj.lam);
+        if obj.nl0 > 0
+            obj.loglam = obj.loglam ...
                          + gpca.utils.diGamma(0.5*obj.nl*D) ...
                          - log(0.5*obj.nl*D);
         end
+        
     else
-        obj.lam    = obj.lam0;
-        obj.nl     = obj.nl0;
-        obj.loglam = gpca.utils.log(obj.lam);
+    % ---------------------------------------------------------------------
+    % Fixed value (nl0 == inf)
+    % ---------------------------------------------------------------------
+        % Nothing to do
     end
     
 end

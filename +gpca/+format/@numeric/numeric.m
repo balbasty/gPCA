@@ -1,4 +1,4 @@
-classdef numeric
+classdef numeric < gpca.format.base
     
     properties
         type = 'single';
@@ -6,7 +6,9 @@ classdef numeric
     
     methods
         function obj = numeric(type)
-            obj.type = type;
+            if nargin > 0
+                obj.type = type;
+            end
         end
         
         function data = read(~,array,index,dimension)
@@ -15,6 +17,10 @@ classdef numeric
                 if nargin < 3
                     index = inf;
                 end
+            end
+            lat = size(array);
+            if isfinite(index) && index > lat(dimension)
+                index = lat(dimension);
             end
             numdim = max(dimension,numel(size(array)));
             if ~isfinite(index)
@@ -33,6 +39,8 @@ classdef numeric
                 dimension = numel(size(array));
                 if nargin < 4
                     index = inf;
+                else
+                    foo = 0;
                 end
             end
             numdim = max(dimension,numel(size(array)));
@@ -47,12 +55,17 @@ classdef numeric
                 S.type = '()';
                 S.subs = num2cell(repmat(':', [1 numdim]));
                 S.subs{dimension} = index;
-                array = subsasgn(array, S, reshape(value, lat));
+%                 array = subsasgn(array, S, reshape(value, lat));
+                array = subsasgn(array, S, value);
             end
         end
         
         function n = numel(~, array)
             n = numel(array);
+        end
+            
+        function lat = size(~, array)
+            lat = size(array);
         end
         
         function array = allocate(obj, lat, ~)
