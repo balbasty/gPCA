@@ -19,16 +19,20 @@ function obj = plot(obj)
     % mean
     % ----
     subplot(nrow,ncol,i);
-    imagesc(gpca.format.read(obj.mu));
-    colormap(gray());
-    axis off
+    if numel(gpca.format.read(obj.mu)) > 1
+    %     imagesc(gpca.format.read(obj.mu));
+        imshow_deformation(gpca.format.read(obj.mu));
+        colormap(gray());
+        axis off
+    end
     i = i+1;
 
     % ---
     % PC1
     % ---
     subplot(nrow,ncol,i);
-    imagesc(gpca.format.read(obj.U,1));
+%     imagesc(gpca.format.read(obj.U,1));
+    imshow_deformation(gpca.format.read(obj.U,1));
     colormap(gray());
     axis off
     i = i+1;
@@ -37,7 +41,8 @@ function obj = plot(obj)
     % PC2
     % ---
     subplot(nrow,ncol,i);
-    imagesc(gpca.format.read(obj.U,2));
+%     imagesc(gpca.format.read(obj.U,2));
+    imshow_deformation(gpca.format.read(obj.U,2));
     colormap(gray());
     axis off
     i = i+1;

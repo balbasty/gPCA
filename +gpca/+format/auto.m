@@ -18,6 +18,8 @@ function format = auto(object)
             % if match, use image format
             if any(strcmpi(ext, image_ext))
                 format = gpca.format.image(ext);
+            elseif strcmpi(ext, 'nii')
+                format = gpca.format.nifti();
             else
                 error('file format %s unsuppported', ext);
             end
