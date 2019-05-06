@@ -15,7 +15,7 @@ function obj = train_internal(obj)
     obj.elbo_latent_precision();
     obj.elbo_residual_precision();
 
-    obj.plot();
+%     obj.plot();
     
     % --------
     % Optimise
@@ -27,7 +27,7 @@ function obj = train_internal(obj)
         % ------------
         % Update model
         % ------------
-        obj.update_model();
+        obj.update_model(i > 1);
         
         % -------------
         % Update latent

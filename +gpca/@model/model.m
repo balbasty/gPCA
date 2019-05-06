@@ -109,7 +109,7 @@ classdef model < handle
         
         obj  = init_data(obj,dataset)              % done
         
-        obj  = plot(obj)
+        obj  = plot(obj, do_plot)                  % done
         
         obj  = init_model(obj)                     % done
         obj  = init_latent(obj)                    % done

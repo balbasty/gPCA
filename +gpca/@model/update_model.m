@@ -1,4 +1,4 @@
-function obj = update_model(obj)
+function obj = update_model(obj, do_plot)
 
     % ----
     % mean
@@ -7,7 +7,7 @@ function obj = update_model(obj)
     obj.elbo_obs();
     obj.elbo_mean();
     
-    obj.plot();
+    if do_plot, obj.plot(); end
     
     % ----------------
     % latent precision
@@ -16,7 +16,7 @@ function obj = update_model(obj)
     obj.elbo_latent();
     obj.elbo_latent_precision();
     
-    obj.plot();
+    if do_plot, obj.plot(); end
     
     % --------
     % subspace
@@ -25,7 +25,7 @@ function obj = update_model(obj)
     obj.elbo_obs();
     obj.elbo_subspace();
     
-    obj.plot();
+    if do_plot, obj.plot(); end
     
     % -------------
     % orthogonalise
@@ -34,7 +34,7 @@ function obj = update_model(obj)
     obj.elbo_latent();
     obj.elbo_subspace();
     
-    obj.plot();
+    if do_plot, obj.plot(); end
     
     % ------------------
     % residual precision
@@ -43,6 +43,6 @@ function obj = update_model(obj)
     obj.elbo_obs();
     obj.elbo_residual_precision();
     
-    obj.plot();
+    if do_plot, obj.plot(); end
     
 end
