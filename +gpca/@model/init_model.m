@@ -47,7 +47,7 @@ function obj = init_model(obj)
     end
     obj.ULU = 0;
     for m=1:obj.M
-        Um      = format.read(obj.U, m);
+        Um      = obj.format.read(obj.U, m);
         LUm     = obj.dot.solve(Um);
         obj.ULU = obj.ULU + LUm(:)' * Um(:);
         clear LUM
