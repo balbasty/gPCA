@@ -39,4 +39,4 @@ gpca_model.nl0 = eps;
 
 %% Fit model
 
-trained_model = gpca_model.train(dataset);
+[Z,fit] = gpca_model.fit_transform(dataset);

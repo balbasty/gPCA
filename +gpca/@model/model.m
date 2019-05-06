@@ -4,6 +4,7 @@ classdef model < handle
     % Model hyper-parameters
         dot         = gpca.dot.euclidean(); % Dot product (< gpca.dot.base)
         M           = Inf; % Number of principal components
+        K           = 1    % Number of classes
         lat         = [];  % Lattice dimensions
         A0          = 1;   % Prior expected latent precision
         nA0         = 0;   % Prior df latent precision
@@ -51,12 +52,13 @@ classdef model < handle
         ZZ    = []   % Latent cordinates (2nd moment)
         Az    = []   % Posterior precision (shared between subjects)
         iAz   = []   % Inverse of Az
+        Y     = []   % Class-indexing (1st moment)
         lbX   = NaN  % ELL of data term
         lbZ   = NaN  % EKL of latent coordinates
         elbo  = []   % Evidence Lower BOund
         elbo_parts = struct;
         gain  = NaN  % ELBO gain between two iterations
-        track = struct('X',  [], 'Z',   [], 'U',  [], ...
+        track = struct('X',  [], 'Y',   [], 'Z',  [], 'U',  [], ...
                        'A',  [], 'lam', [], 'mu', [], 'elbo', [])
     end
     
@@ -68,8 +70,25 @@ classdef model < handle
         mod = get_model(obj)
         obj = set_model(obj, mod)
         
-        function output = train(obj,dataset) % Fit the full model    (subj+pop)
-            obj.init_data(dataset);
+        function [Z,Y,output] = fit_transform(obj,X,Y)
+        % [oZ,oY,details] = model.fit_transform(iX,[iY])
+        %   Fit the full model (subj+pop) and return the latent space
+        %       iX - Observed D-dimensional vectors
+        %       iY - Observed K-dimensional classes
+        %       oZ - Expected M-dimensional latent coordinates
+        %       oY - Expected K-dimensional classes
+        %   iX must be a sliceable D-dimensional dataset with N elements
+        %   iY must be a [Kx1] or [KxN] array, or the value K
+        %   oY is a [KxN] array
+        %   oZ is a [MxN] array
+        %
+        % See also: gpca.dataset.numeric
+        %           gpca.dataset.image
+        %           gpca.dataset.nifti
+            if nargin < 3
+                Y = 1;
+            end
+            obj.init_data(X,Y);
             if ~isfinite(obj.M) || obj.M > numel(obj.data)
                 obj.M = numel(obj.data) - 1;
             end
@@ -81,11 +100,43 @@ classdef model < handle
 %                 ME.throw();
 %             end
             output = obj.create_output();
+            Z = output.latent.Z;
             obj.cleanup_data();
         end
         
-        function output = apply(obj,dataset) % Fit the trained model (subj)
-            obj.init_data(dataset);
+        function [output] = fit(obj,varargin)
+        % [details] = model.fit(iX,[iY])
+        %   Fit the full model (subj+pop)
+        %       iX - Observed D-dimensional vectors
+        %       iY - Observed K-dimensional classes
+        %   iX must be a sliceable D-dimensional dataset with N elements
+        %   iY must be a [Kx1] or [KxN] array
+        %
+        % See also: gpca.dataset.numeric
+        %           gpca.dataset.image
+        %           gpca.dataset.nifti
+            [~,~,output] = obj.fit_transform(varargin{:});
+        end
+        
+        function [Z,Y,output] = transform(obj,X,Y)
+        % [oZ,oY,details] = model.transform(iX,[iY])
+        %   Fit subjects using learnt model and return the latent space
+        %       iX - Observed D-dimensional vectors
+        %       iY - Observed K-dimensional classes
+        %       oZ - Expected M-dimensional latent coordinates
+        %       oY - Expected K-dimensional classes
+        %   iX must be a sliceable D-dimensional dataset with N elements
+        %   iY must be a [Kx1] or [KxN] array
+        %   oY is a [KxN] array
+        %   oZ is a [MxN] array
+        %
+        % See also: gpca.dataset.numeric
+        %           gpca.dataset.image
+        %           gpca.dataset.nifti
+            if nargin < 3
+                Y = 1;
+            end
+            obj.init_data(X,Y);
             datalat = gpca.format.size(obj.data(1).x);
             if ~issame(datalat, obj.lat)
                 error('Model and Data lattices are not compatible')
@@ -97,6 +148,7 @@ classdef model < handle
                 ME.throw();
             end
             output = obj.create_output();
+            Z = output.latent.Z;
             obj.cleanup_data();
         end
         
@@ -107,7 +159,7 @@ classdef model < handle
         obj  = train_internal(obj)                 % done
         obj  = apply_internal(obj)                 % done
         
-        obj  = init_data(obj,dataset)              % done
+        obj  = init_data(obj,X,Y)                  % done
         
         obj  = plot(obj, do_plot)                  % done
         

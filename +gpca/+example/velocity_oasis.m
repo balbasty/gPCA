@@ -36,13 +36,14 @@ gpca_model.parallel = 15;
 gpca_model.nA0 = 20;
 gpca_model.nm0 = inf;
 gpca_model.nl0 = eps;
-gpca_model.dot = gpca.dot.diffeo;
-gpca_model.dot.Absolute      = 0;
-gpca_model.dot.Membrane      = 0.001;
-gpca_model.dot.Bending       = 0.02;
-gpca_model.dot.LinearElastic = [0.0025 0.005];
-gpca_model.dot.Boundary      = 0;
+% gpca_model.dot = gpca.dot.diffeo;
+% gpca_model.dot.Absolute      = 0;
+% gpca_model.dot.Membrane      = 0.001;
+% gpca_model.dot.Bending       = 0.02;
+% gpca_model.dot.LinearElastic = [0.0025 0.005];
+% gpca_model.dot.Boundary      = 0;
+gpca_model.format = gpca.format.nifti;
 
 %% Fit model
 
-trained_model = gpca_model.train(dataset);
+[Z,fit] = gpca_model.fit_transform(dataset);

@@ -4,6 +4,7 @@ function obj = train_internal(obj)
     % Initialise
     % ----------
 
+    obj.init_label();
     obj.init_model();
     obj.init_latent();
     obj.init_elbo_parts();

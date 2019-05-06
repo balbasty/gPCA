@@ -9,18 +9,12 @@ function obj = init_model(obj)
     if ~isfinite(obj.nm0)
         obj.mu = obj.mu0;
     else
-        if format.numel(obj.mu0) == 1
-            obj.mu = obj.format.allocate(obj.lat);
-            obj.mu = obj.format.write(obj.mu, format.read(obj.mu0));
-        else
-            obj.mu = format.like(obj.mu0, 'mean');
-            obj.mu = format.write(obj.mu, format.read(obj.mu0));
+        obj.mu = obj.format.allocate([obj.lat obj.K]);
+        for k=1:obj.K
+            obj.mu = obj.format.write(obj.mu, format.read(obj.mu0, k), k);
         end
     end
     obj.nm = obj.nm0;
-    mu = gpca.format.read(obj.mu);
-    clear mu
-    
     
     % ------------------
     % residual precision

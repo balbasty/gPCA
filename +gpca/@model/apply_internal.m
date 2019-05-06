@@ -3,6 +3,7 @@ function obj = apply_internal(obj)
     % ----------
     % Initialise
     % ----------
+    obj.init_label();
     obj.init_latent();
     obj.init_elbo_parts();
     obj.elbo_obs();
