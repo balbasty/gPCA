@@ -6,6 +6,7 @@ classdef (Abstract) base
         array = write(obj,array,value,index,dimension)
         n     = numel(obj, array)
         lat   = size(obj, array)
+        [type,complex] = class(obj, array)
         array = allocate(obj, lat, prefix)
         array = like(obj, other, prefix)
         

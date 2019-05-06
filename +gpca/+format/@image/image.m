@@ -49,6 +49,15 @@ classdef image < gpca.format.base
                 lat = [lat 3];
             end
         end
+            
+        function [type, is_complex] = class(~, array)
+            if ~ischar(array)
+                error('Image format must be a path to an image file')
+            end
+            info = imfinfo(array);
+            type = ['uint' info.BitDepth];
+            is_complex = false;
+        end
         
         function array = allocate(obj, lat, prefix)
             array = fullfile(pwd, [prefix '.' obj.fileformat]);

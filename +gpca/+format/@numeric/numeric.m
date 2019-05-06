@@ -39,8 +39,6 @@ classdef numeric < gpca.format.base
                 dimension = numel(size(array));
                 if nargin < 4
                     index = inf;
-                else
-                    foo = 0;
                 end
             end
             numdim = max(dimension,numel(size(array)));
@@ -66,6 +64,11 @@ classdef numeric < gpca.format.base
             
         function lat = size(~, array)
             lat = size(array);
+        end
+        
+        function [type,is_complex] = class(~,array)
+            type = class(array);
+            is_complex = ~isreal(array);
         end
         
         function array = allocate(obj, lat, ~)
