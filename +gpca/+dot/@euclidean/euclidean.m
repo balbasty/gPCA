@@ -1,4 +1,4 @@
-classdef euclidean % < gpca.dot.base
+classdef euclidean < gpca.dot.base
 % FORMAT dot = gpca.dot.euclidean()
 %
 % Euclidean inner product (dot)

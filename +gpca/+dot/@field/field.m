@@ -1,4 +1,4 @@
-classdef field % < gpca.dot.base
+classdef field < gpca.dot.base
 % FORMAT dot_field = gpca.dot.field()
 %
 % Inner product between 3D volumes based on a a mixture of differential 
