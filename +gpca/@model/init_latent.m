@@ -7,6 +7,11 @@ function obj = init_latent(obj)
     ZZ = Z*Z';
     Az = obj.A;
     
+    [U,~,~] = svd(ZZ);
+    Z  = U' * Z;
+    ZZ = U' * ZZ * U;
+    clear U
+    
     data     = obj.data;
     obj.data = [];
     parfor(n=1:numel(data), obj.parallel)
