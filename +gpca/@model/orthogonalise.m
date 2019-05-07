@@ -1,7 +1,5 @@
 function obj = orthogonalise(obj)
 
-    % !! TODO
-
     N   = numel(obj.data);
     D   = prod(obj.lat);
     EUU = obj.ULU + D * obj.iAu;

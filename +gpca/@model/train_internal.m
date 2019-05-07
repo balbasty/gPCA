@@ -14,8 +14,6 @@ function obj = train_internal(obj)
     obj.elbo_subspace();
     obj.elbo_latent_precision();
     obj.elbo_residual_precision();
-
-%     obj.plot();
     
     % --------
     % Optimise
@@ -32,7 +30,8 @@ function obj = train_internal(obj)
         % -------------
         % Update latent
         % -------------
-        obj.update_all_subjects();
+        obj.update_latent();
+        obj.centre_latent();
         obj.elbo_obs();
         obj.elbo_latent();
         
@@ -46,7 +45,7 @@ function obj = train_internal(obj)
         if numel(obj.elbo) > 1
             obj.gain = (obj.elbo(end) - obj.elbo(end-1))/(max(obj.elbo)-min(obj.elbo));
         else
-            gain = inf;
+            obj.gain = inf;
         end
         
         if obj.verbose > 0

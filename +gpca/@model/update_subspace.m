@@ -19,13 +19,13 @@ function obj = update_subspace(obj)
     ZiA      = obj.lam * obj.Z' * obj.iAu;
     
     % 2) Compute (X - mu) * [lam * Z' * inv(Au)]
-    mu = gpca.format.read(obj.mu);
+    mu = double(gpca.format.read(obj.mu));
     [data, obj.data] = deal(obj.data, []);
     for m=1:obj.M
         Um       = 0;
         parfor(n=1:N, obj.parallel)
             data1 = data(n);
-            x     = gpca.format.read(data1.x);
+            x     = double(gpca.format.read(data1.x));
             data1 = [];
             Um    = Um + (x - mu) * ZiA(n,m);
             x     = [];
@@ -74,13 +74,13 @@ function obj = update_subspace(obj)
         z     = data1.z;
         Uz    = 0;
         for m=1:M
-            Um  = gpca.format.read(U, m);
+            Um  = double(gpca.format.read(U, m));
             Uz  = Uz + z(m) * Um;
             Um  = [];
         end
         z     = [];
         % b) Compute L * (x- mu)
-        Lx = gpca.format.read(data1.x) - mu;
+        Lx = double(gpca.format.read(data1.x)) - mu;
         Lx = dot.solve(Lx);
         data1 = [];
         % c) Accumulate

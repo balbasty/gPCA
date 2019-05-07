@@ -1,4 +1,4 @@
-function obj = update_all_subjects(obj)
+function obj = update_latent(obj)
 
     N = numel(obj.data);
     D = prod(obj.lat);
@@ -21,7 +21,7 @@ function obj = update_all_subjects(obj)
     parfor(n=1:N, obj.parallel)
 %     for n=1:N
         
-        data(n) = obj.update_subject(data(n));
+        data(n) = obj.update_latent_one(data(n));
         Z(:,n)  = data(n).z;
         ZZ      = ZZ + data(n).zz;
         
@@ -70,4 +70,5 @@ function obj = update_all_subjects(obj)
     obj.elbo_parts.trLUZX = trLUZX;
     clear mu
     
+    obj.Z_iscentred = false;
 end

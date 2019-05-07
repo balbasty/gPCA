@@ -31,8 +31,9 @@ function obj = update_model(obj, do_plot)
     % orthogonalise
     % -------------
     obj.orthogonalise();
-    obj.elbo_latent();
     obj.elbo_subspace();
+    obj.elbo_latent();
+    obj.elbo_latent_precision();
     
     if do_plot, obj.plot(); end
     

@@ -58,6 +58,7 @@ classdef model < handle
         gain  = NaN  % ELBO gain between two iterations
         track = struct('X',  [], 'Z',   [], 'U',  [], ...
                        'A',  [], 'lam', [], 'mu', [], 'elbo', [])
+        Z_iscentred = false
     end
     
     methods (Access = public)
@@ -115,13 +116,15 @@ classdef model < handle
         obj  = init_latent(obj)                    % done
         obj  = init_elbo_parts(obj)                % done
         
-        obj  = update_all_subjects(obj)            % done
-        data = update_subject(obj,data)            % done
+        obj  = update_latent(obj)                  % done
+        data = update_latent_one(obj,data)         % done
         obj  = update_population(obj)              % done
         obj  = update_subspace(obj)                % done
         obj  = update_mean(obj)                    % done
         obj  = update_latent_precision(obj)        % done
         obj  = update_residual_precision(obj)      % done
+        
+        obj  = centre_latent(obj)                  % done
         
         obj  = elbo_subspace(obj)                  % done
         obj  = elbo_mean(obj)                      % done
@@ -144,6 +147,7 @@ classdef model < handle
             obj.gain = NaN;
             obj.track = struct('X', [], 'Z',   [], 'U',  [], ...
                                'A', [], 'lam', [], 'mu', [], 'elbo', []);
+            obj.Z_iscentred = false;
         end
         
         function out = create_output(obj)
