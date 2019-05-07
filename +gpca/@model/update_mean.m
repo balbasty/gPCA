@@ -24,19 +24,22 @@ function obj = update_mean(obj)
         % ------------------
         % > ML[mu] = mean{x - Uz}
         mu = 0;
+        Z_iscentred = obj.Z_iscentred;
         [data, obj.data] = deal(obj.data, []);
         parfor(n=1:numel(data), obj.parallel)
             % 1) Reconstruct fit (U*z)
             data1 = data(n);
-            z     = data1.z;
             Uz    = 0;
-            for m=1:M
-                Um  = gpca.format.read(U, m);
-                Uz  = Uz + z(m) * Um;
-                Um  = [];
+            if ~Z_iscentred
+                z     = data1.z;
+                for m=1:M
+                    Um  = gpca.format.read(U, m);
+                    Uz  = Uz + z(m) * Um;
+                    Um  = [];
+                end
+                z     = [];
             end
-            z     = [];
-            % 2) Add difference mu += (Uz - x)
+            % 2) Add difference mu += (x - Uz)
             mu    = mu + (gpca.format.read(data1.x) - Uz);
             Uz    = [];
             data1 = [];

@@ -1,4 +1,4 @@
-function subj_data = update_subject(obj,subj_data)
+function subj_data = update_latent_one(obj,subj_data)
 
     % -----------------------------------
     % Update latent [posterior precision]

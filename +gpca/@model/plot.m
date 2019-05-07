@@ -18,12 +18,13 @@ function obj = plot(obj)
     % ----
     % mean
     % ----
-    subplot(nrow,ncol,i);
     if numel(gpca.format.read(obj.mu)) > 1
+        subplot(nrow,ncol,i);
     %     imagesc(gpca.format.read(obj.mu));
         imshow_deformation(gpca.format.read(obj.mu));
         colormap(gray());
         axis off
+        title('E[\mu]')
     end
     i = i+1;
 
@@ -35,6 +36,7 @@ function obj = plot(obj)
     imshow_deformation(gpca.format.read(obj.U,1));
     colormap(gray());
     axis off
+    title('E[u_1]')
     i = i+1;
     
     % ---
@@ -45,6 +47,7 @@ function obj = plot(obj)
     imshow_deformation(gpca.format.read(obj.U,2));
     colormap(gray());
     axis off
+    title('E[u_2]')
     i = i+1;
     
     elbo = 0;

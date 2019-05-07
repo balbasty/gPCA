@@ -12,7 +12,7 @@ function obj = apply_internal(obj)
     % --------------
     % Compute latent
     % --------------
-    obj.update_all_subjects();
+    obj.update_latent();
     obj.elbo_obs();
     obj.elbo_latent();
     

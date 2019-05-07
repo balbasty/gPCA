@@ -13,7 +13,7 @@ function [Q, iQ, q] = gn_scale_U(EUU, EZZ, A0, nA0, N, D, q0)
     M = size(EZZ, 1);
 
     if nargin < 9 || isempty(q0)
-        q0    = zeros(M,1)-log(D);
+        q0    = zeros(M,1)-0.5*log(D);
     end
 
     q    = min(max(q0,-10),10);  % Heuristic to avoid bad starting estimate
@@ -21,17 +21,19 @@ function [Q, iQ, q] = gn_scale_U(EUU, EZZ, A0, nA0, N, D, q0)
     A    = wishart_update(Q*EZZ*Q, N, A0, nA0);
     E    = 0.5*(trace(Q*EZZ*Q*A) + trace(EUU/(Q*Q))) ...
             + (D - N) * gpca.utils.logdetPD(Q);
-%     fprintf('[%3d %2d] %g\n',0,0,E)
+    % fprintf('[%3d %2d] %15.6g',0,0,E)
 
+    all_E0 = E;
     for iter=1:100
         A   = wishart_update(Q*EZZ*Q, N, A0, nA0);
         oE0 = E;
 
+        all_E = E;
         for subit=1:10
             R  = A.*EZZ'+A'.*EZZ;
             g1 = Q*R*diag(Q);
             g2 =-2*(Q^2\diag(EUU));
-            g  = g1 + g2 + (D - N);
+            g  = g1 + g2 + 2 * (D - N);
 
             H1 = Q*R*Q + diag(g1);
             H2 = 4*(Q^2\EUU);
@@ -45,14 +47,18 @@ function [Q, iQ, q] = gn_scale_U(EUU, EZZ, A0, nA0, N, D, q0)
             oE = E;
             E  = 0.5*(trace(Q*EZZ*Q*A) + trace(EUU/(Q*Q))) ...
                   + (D - N) * gpca.utils.logdetPD(Q);
+            all_E = [all_E E];
 
-%             fprintf('[%3d %2d] %g\n',iter,subit,E)
-            if (oE-E)/E < 1e-8, break; end
+            % fprintf('\n[%3d %2d] %15.6g (%8.1e)',iter,subit,E, ...
+            %     abs(oE-E)/(max(all_E)-min(all_E)+eps))
+            if abs(oE-E)/(max(all_E)-min(all_E)+eps) < 1e-8, break; end
         end
-        if abs((oE0-E)/E) < 1e-7, break; end
+        all_E0 = [all_E0 E];
+        % fprintf(' (%8.1e)', abs(oE0-E)/(max(all_E0)-min(all_E0)+eps))
+        if abs(oE0-E)/(max(all_E0)-min(all_E0)+eps) < 1e-20, break; end
     end
     iQ = inv(Q);
-    
+    % fprintf('\n');
 end
    
 function A = wishart_update(EZZ, N, A0, nA0)
@@ -71,22 +77,25 @@ end
 % % Code for working out the gradients and Hessians
 % q   = sym('q',[3,1],'real');
 % Q   = diag(exp(q));
+% % A   = diag(sym('a',[3,1],'real'));
+% % ZZ  = diag(sym('z',[3,1],'real'));
+% % WW   = diag(sym('w',[3,1],'real'));
 % A   = sym('a',[3,3],'real');
-% ZZ1 = sym('x',[3,3],'real');
-% y   = sym('y',[3,1],'real');
-% WW1 = diag(y);
+% ZZ  = sym('z',[3,3],'real');
+% WW   = sym('w',[3,3],'real');
+% DmN = sym('DmN','real');
 % %%
-% E   = trace(Q*ZZ1*Q*A) + trace(WW1*inv(Q*Q));
+% E   = trace(Q*ZZ*Q*A) + trace(WW*inv(Q*Q)) + 2 * DmN * log(det(Q));
 % %%
 % pretty(simplify(diff(E,sym('q1')),1000))
 % pretty(simplify(diff(diff(E,sym('q1')),sym('q2')),1000))
 % pretty(simplify(diff(diff(E,sym('q1')),sym('q1')),1000))
 % %%
-% g1 =  Q*(A.*ZZ1'+A'.*ZZ1)*diag(Q);
-% g2 = -Q^2\diag(WW1)*2;
-% g  =  g1+g2;
-% H1 =  Q*(A'.*ZZ1 + A.*ZZ1')*Q +diag(g1);
-% H2 =  4*WW1*Q^(-2);
+% g1 =  Q*(A.*ZZ'+A'.*ZZ)*diag(Q);
+% g2 = -Q^2\diag(WW)*2;
+% g  =  g1+g2+2*DmN;
+% H1 =  Q*(A'.*ZZ + A.*ZZ')*Q +diag(g1);
+% H2 =  4*WW*Q^(-2);
 % H  =  H1+H2;
 % %%
 % d1  = simplify(g(1)  -diff(E,sym('q1')),1000)
