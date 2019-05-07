@@ -1,9 +1,11 @@
-%% Specify input/output folders
+%% ------------------------------------------------------------------------
+%  Specify input/output folders
 
 input_folder = '/scratch/shape/oasis/oasis_disc1';
 output_folder = '.';
 
-%% Build dataset
+%% ------------------------------------------------------------------------
+%  Build dataset
 
 file_list = {};
 
@@ -27,22 +29,24 @@ end
 
 dataset = gpca.dataset.image(file_list{:});
 
-%% Prepare model
+%% ------------------------------------------------------------------------
+%  Prepare model
 
-gpca_model = gpca.model();
-gpca_model.verbose = 2;
-gpca_model.M = 5;
-gpca_model.parallel = 15;
-gpca_model.nA0 = 20;
-gpca_model.nm0 = inf;
-gpca_model.nl0 = eps;
-gpca_model.dot = gpca.dot.diffeo;
-gpca_model.dot.Absolute      = 0;
-gpca_model.dot.Membrane      = 0.001;
-gpca_model.dot.Bending       = 0.02;
-gpca_model.dot.LinearElastic = [0.0025 0.005];
-gpca_model.dot.Boundary      = 0;
+gpca_model                   = gpca.model();        % Create model
+gpca_model.verbose           = 2;                   % 1 = speak | 2 = plot
+gpca_model.M                 = 5;                   % Nb of principal components            
+gpca_model.parallel          = 15;                  % Nb of workers (inf = all)
+gpca_model.nA0               = 20;                  % (prior) d.f. latent precision
+gpca_model.nm0               = inf;                 % (prior) d.f. mean (inf = fixed)
+gpca_model.nl0               = eps;                 % (prior) d.f. residual precision
+gpca_model.dot               = gpca.dot.diffeo;     % Diffeo dot product
+gpca_model.dot.Absolute      = 0;                   % prm(1)
+gpca_model.dot.Membrane      = 0.001;               % prm(2)
+gpca_model.dot.Bending       = 0.02;                % prm(3)
+gpca_model.dot.LinearElastic = [0.0025 0.005];      % prm([4 5])
+gpca_model.dot.Boundary      = 0;                   % 0 = circulant | 1 = neumann
 
-%% Fit model
+%% ------------------------------------------------------------------------
+%  Fit model
 
 trained_model = gpca_model.train(dataset);
