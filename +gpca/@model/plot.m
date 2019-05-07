@@ -20,8 +20,12 @@ function obj = plot(obj)
     % ----
     if numel(gpca.format.read(obj.mu)) > 1
         subplot(nrow,ncol,i);
-    %     imagesc(gpca.format.read(obj.mu));
-        imshow_deformation(gpca.format.read(obj.mu));
+        dim = gpca.format.size(obj.mu);
+        if dim(end) == 3
+            gpca.plot.imshow_deformation(gpca.format.read(obj.mu));
+        else
+            gpca.plot.imshow_mri(gpca.format.read(obj.mu));
+        end
         colormap(gray());
         axis off
         title('E[\mu]')
@@ -32,8 +36,12 @@ function obj = plot(obj)
     % PC1
     % ---
     subplot(nrow,ncol,i);
-%     imagesc(gpca.format.read(obj.U,1));
-    imshow_deformation(gpca.format.read(obj.U,1));
+    dim = gpca.format.size(obj.U);
+    if dim(end-1) == 3
+        gpca.plot.imshow_deformation(gpca.format.read(obj.U,1));
+    else
+        gpca.plot.imshow_mri(gpca.format.read(obj.U,1));
+    end
     colormap(gray());
     axis off
     title('E[u_1]')
@@ -43,8 +51,12 @@ function obj = plot(obj)
     % PC2
     % ---
     subplot(nrow,ncol,i);
-%     imagesc(gpca.format.read(obj.U,2));
-    imshow_deformation(gpca.format.read(obj.U,2));
+    dim = gpca.format.size(obj.U);
+    if dim(end-1) == 3
+        gpca.plot.imshow_deformation(gpca.format.read(obj.U,2));
+    else
+        gpca.plot.imshow_mri(gpca.format.read(obj.U,2));
+    end
     colormap(gray());
     axis off
     title('E[u_2]')
