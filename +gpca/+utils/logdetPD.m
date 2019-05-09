@@ -9,7 +9,7 @@ function ld = logdetPD(A)
 % John Ashburner
 
     % Cholseki decomposition of A (A = C' * C, with C upper-triangular)
-    [C, p] = chol(numeric(A));
+    [C, p] = chol(A());
     
     if p > 0
        % A should usually be positive definite, but check anyway.
